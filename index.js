@@ -56,7 +56,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
     // Guardar metadatos en la base de datos
     const metadata = {
       filename: req.file.originalname,
-      size: req.file.size,
+      size: (req.file.size/1000).toFixed(2),
       mimetype: req.file.mimetype,
       location: data.Location,
     };
@@ -67,11 +67,36 @@ app.post('/upload', upload.single('file'), (req, res) => {
         console.error('Error al guardar metadatos en la base de datos:', err);
         return res.status(500).send('Error al guardar metadatos en la base de datos');
       }
-      res.send(`Archivo subido exitosamente. URL: ${data.Location}`);
+      res.send(`Archivo subido exitosamente.`);
     });
   });
 });
+// Endpoint para listar archivos en S3
+app.get('/list', (req, res) => {
+  const params = {
+    Bucket: process.env.S3_BUCKET
+  };
 
+  s3.listObjectsV2(params, (err, data) => {
+    if (err) {
+      console.error('Error al listar los archivos:', err);
+      return res.status(500).send('Error al listar los archivos');
+    }
+    res.send(data.Contents.map(file => file.Key));
+  });
+});
+
+// Endpoint para obtener metadatos de la base de datos
+app.get('/metadata', (req, res) => {
+  const sql = 'SELECT * FROM file_metadata';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error al obtener metadatos:', err);
+      return res.status(500).send('Error al obtener metadatos');
+    }
+    res.send(results);
+  });
+});
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });

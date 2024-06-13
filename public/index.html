@@ -14,23 +14,110 @@
     </form>
     <div id="message"></div>
 
+    <!-- Listar archivos en S3 -->
+    <h2>Archivos en S3:</h2>
+    <ul id="fileList"></ul>
+
+    <!-- Mostrar metadatos desde la base de datos -->
+    <h2>Metadatos desde la base de datos:</h2>
+    <table id="metadataTable" border="1">
+        <thead>
+            <tr>
+                <th>Nombre de Archivo</th>
+                <th>Tamaño(KB)</th>
+                <th>Tipo MIME</th>
+                <th>Ubicación</th>
+                <th>Fecha subida</th>
+            </tr>
+        </thead>
+        <tbody id="metadataBody"></tbody>
+    </table>
+
     <script>
+        // Función para obtener y mostrar la lista de archivos en S3
+        async function fetchFileList() {
+            try {
+                const response = await fetch('/list');
+                if (!response.ok) {
+                    throw new Error('Error al obtener la lista de archivos');
+                }
+                const files = await response.json();
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+                files.forEach(file => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = file;
+                    fileList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error(error);
+                alert('Error al obtener la lista de archivos');
+            }
+        }
+
+        // Función para obtener y mostrar los metadatos desde la base de datos
+        async function fetchMetadata() {
+            try {
+                const response = await fetch('/metadata');
+                if (!response.ok) {
+                    throw new Error('Error al obtener los metadatos');
+                }
+                const metadata = await response.json();
+                const metadataBody = document.getElementById('metadataBody');
+                metadataBody.innerHTML = '';
+                metadata.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.filename}</td>
+                        <td>${item.size}</td>
+                        <td>${item.mimetype}</td>
+                        <td>${item.location}</td>
+                        <td>${item.uploaded_at}</td>
+                    `;
+                    metadataBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error(error);
+                alert('Error al obtener los metadatos');
+            }
+        }
+
+        // Función para limpiar el cargador de archivos
+        function resetFileInput() {
+            const fileInput = document.getElementById('file');
+            fileInput.value = ''; // Borra el valor del input de archivo
+        }
+
+        // Ejecutar las funciones al cargar la página
+        window.onload = () => {
+            fetchFileList();
+            fetchMetadata();
+        };
+
+        // Manejar el envío del formulario de carga de archivos
         document.getElementById('uploadForm').addEventListener('submit', async (event) => {
             event.preventDefault();
             const fileInput = document.getElementById('file');
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            const messageDiv = document.getElementById('message');
-            if (response.ok) {
-                const result = await response.text();
-                messageDiv.innerText = result;
-            } else {
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const messageDiv = document.getElementById('message');
+                if (response.ok) {
+                    const result = await response.text();
+                    messageDiv.innerText = result;
+                    fetchFileList(); // Actualizar lista de archivos después de subir uno nuevo
+                    fetchMetadata(); // Actualizar metadatos después de subir uno nuevo
+                    resetFileInput(); // Reiniciar el cargador de archivos
+                } else {
+                    messageDiv.innerText = 'Error al subir el archivo';
+                }
+            } catch (error) {
+                console.error(error);
                 messageDiv.innerText = 'Error al subir el archivo';
             }
         });
