@@ -1,0 +1,44 @@
+db.registros.aggregate([
+  {
+    $addFields: {
+      year: {
+        $toInt: {
+          $substrCP: ["$Fecha", 6, 4] // Extracts the year as a substring from the date string
+        }
+      }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        year: "$year",
+        municipio: "$Código del municipio"
+      },
+      codigoMunicipio: { $first: "$Código del municipio" },
+      nombreMunicipio: { $first: "$Nombre del municipio" },
+      codigoDepartamento: { $first: "$Código del departamento" },
+      nombreDepartamento: { $first: "$Departamento" },
+      promedioConcentracion: { $avg: "$Concentración" }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      año: "$_id.year",
+      codigoMunicipio: 1,
+      nombreMunicipio: 1,
+      codigoDepartamento: 1,
+      nombreDepartamento: 1,
+      promedioConcentracion: { $round: ["$promedioConcentracion", 2] }
+    }
+  },
+  {
+    $sort: {
+      año: 1,
+      codigoMunicipio: 1
+    }
+  },
+  {
+    $out: "municipiosXanhos" 
+  }
+]);
