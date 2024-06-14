@@ -7,34 +7,45 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Subir Archivos a S3</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="file" id="file" required>
-        <button type="submit">Subir</button>
-    </form>
-    <div id="message"></div>
+   <div class="div_fondo">
+    <header>
+        <h1>Subir Archivos a S3</h1>
+    </header>
 
-    <!-- Listar archivos en S3 -->
-    <h2>Archivos en S3:</h2>
-    <ul id="fileList"></ul>
+    <main>
+        <section class="file-upload">
+            <h2>Subir Archivo</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="file" id="file" required>
+                <button type="submit">Subir</button>
+            </form>
+            <div id="message"></div>
+        </section>
 
-    <!-- Mostrar metadatos desde la base de datos -->
-    <h2>Metadatos desde la base de datos:</h2>
-    <table id="metadataTable" border="1">
-        <thead>
-            <tr>
-                <th>Nombre de Archivo</th>
-                <th>Tamaño(KB)</th>
-                <th>Tipo MIME</th>
-                <th>Ubicación</th>
-                <th>Fecha subida</th>
-            </tr>
-        </thead>
-        <tbody id="metadataBody"></tbody>
-    </table>
+        <section class="file-list">
+            <h2>Archivos en S3:</h2>
+            <ol id="fileList"></ol>
+        </section>
 
-    <script>
-        // Función para obtener y mostrar la lista de archivos en S3
+        <section class="metadata">
+            <h2>Metadatos desde la base de datos:</h2>
+            <table id="metadataTable">
+                <thead>
+                    <tr>
+                        <th>Nombre de Archivo</th>
+                        <th>Tamaño (KB)</th>
+                        <th>Tipo MIME</th>
+                        <th>Ubicación</th>
+                        <th>Fecha subida</th>
+                    </tr>
+                </thead>
+                <tbody id="metadataBody"></tbody>
+            </table>
+        </section>
+    </main>
+   </div>
+
+    <script>// Función para obtener y mostrar la lista de archivos en S3
         async function fetchFileList() {
             try {
                 const response = await fetch('/list');
@@ -120,7 +131,6 @@
                 console.error(error);
                 messageDiv.innerText = 'Error al subir el archivo';
             }
-        });
-    </script>
+        });</script>
 </body>
 </html>
